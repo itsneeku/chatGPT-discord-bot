@@ -1,4 +1,6 @@
 import os
+from datetime import datetime, timedelta
+
 import discord
 import asyncio
 
@@ -18,6 +20,8 @@ from g4f.Provider import  FreeGpt, ChatgptNext, AItianhuSpace
 
 from openai import AsyncOpenAI
 
+from src import limits
+
 g4f.debug.logging = True
 
 load_dotenv()
@@ -29,7 +33,7 @@ class discordClient(discord.Client):
         super().__init__(intents=intents)
         self.tree = app_commands.CommandTree(self)
         self.chatBot = Client(
-            provider = RetryProvider([OpenaiChat, Liaobots, FreeGpt, ChatgptNext, AItianhuSpace, Bing, You], shuffle=False),
+            provider = RetryProvider([OpenaiChat, ChatgptNext, AItianhuSpace, Bing, You, Liaobots, FreeGpt], shuffle=False),
         )
         self.chatModel = os.getenv("MODEL")
         self.conversation_history = []
@@ -48,6 +52,24 @@ class discordClient(discord.Client):
             self.starting_prompt = f.read()
 
         self.message_queue = asyncio.Queue()
+
+    async def setup_hook(self):
+        await self.tree.sync()
+        self.loop.create_task(self.reset_daily_total())  # register the daily limits reset task
+
+    async def reset_daily_total(self):  # for chatbot limits
+        await self.wait_until_ready()
+        while not self.is_closed():
+            now = datetime.now()
+            next_run = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+            sleep_time = (next_run - now).total_seconds()
+            await asyncio.sleep(sleep_time)
+            # Your reset logic here
+            limits.daily_total = 0
+            logger.info("Daily total reset")
+            # Reset the conversation history or any other daily reset logic
+            self.reset_conversation_history()
+            logger.info("Daily total reset successfully.")
 
     async def process_messages(self):
         while True:
@@ -102,9 +124,9 @@ class discordClient(discord.Client):
         if len(self.conversation_history) > 26:
              del self.conversation_history[4:6]
         if os.getenv("OPENAI_ENABLED") == "False":
-            async_create = sync_to_async(self.chatBot.chat.completions.create, 
+            async_create = sync_to_async(self.chatBot.chat.completions.create,  # setup async version of G4F chat call
                                          thread_sensitive=True)
-            response: ChatCompletion = await async_create(model=self.chatModel, 
+            response: ChatCompletion = await async_create(model=self.chatModel,   # ACTUAL CALL TO G4F Free Chatbot
                                                           messages=self.conversation_history)
         else:
             response = await self.openai_client.chat.completions.create(

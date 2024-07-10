@@ -12,16 +12,35 @@ from src.aclient import discordClient
 from discord import app_commands
 from src import log, art, personas
 
+from src import limits
 
 def run_discord_bot():
     @discordClient.event
     async def on_ready():
         await discordClient.send_start_prompt()
         await discordClient.tree.sync()
+
         loop = asyncio.get_event_loop()
         loop.create_task(discordClient.process_messages())
         logger.info(f'{discordClient.user} is now running!')
 
+    @discordClient.tree.command(name="limits", description="Display current chatbot spending limits")
+    async def limit_command(interaction: discord.Interaction):
+        try:
+            await interaction.response.defer(ephemeral=True)
+            msg = limits.current_limit_message()
+            await interaction.followup.send(msg)
+            logger.info(msg)
+        except Exception as e:
+            logger.error(f"Error while displaying limits: {e}")
+
+    @discordClient.tree.command(name="setlimits", description="Set chatbot spending limits")
+    async def setlimits(interaction: discord.Interaction):
+        try:
+            await interaction.response.defer(ephemeral=True)
+            await interaction.followup.send("This feature is not available yet.")
+        except Exception as e:
+            logger.error(f"Error while displaying setlimits: {e}")
 
     @discordClient.tree.command(name="chat", description="Have a chat with ChatGPT")
     async def chat(interaction: discord.Interaction, *, message: str):
@@ -35,10 +54,20 @@ def run_discord_bot():
             return
         username = str(interaction.user)
         discordClient.current_channel = interaction.channel
+        # limit check
+        new_cost = 1  # todo calculate cost to be added here
+        if limits.is_over_limit(new_cost):
+            await interaction.response.defer(ephemeral=True)
+            await interaction.followup.send(
+                f"> **WARN: You have reached your limit.\n {limits.current_limit_message()}\n**")
+            logger.warning(
+                f"\x1b[31m{username}\x1b[0m : LIMIT EXCEEDED /chat [{message}] in ({discordClient.current_channel})")
+            return
         logger.info(
             f"\x1b[31m{username}\x1b[0m : /chat [{message}] in ({discordClient.current_channel})")
 
         await discordClient.enqueue_message(interaction, message)
+        limits.add_to_daily_total(new_cost)
 
 
     @discordClient.tree.command(name="private", description="Toggle private access")
@@ -211,6 +240,9 @@ https://github.com/Zero6992/chatGPT-discord-bot""")
                 f"> **ERROR: No available persona: `{persona}` 😿**")
             logger.info(
                 f'{username} requested an unavailable persona: `{persona}`')
+
+
+
 
 
     @discordClient.event
