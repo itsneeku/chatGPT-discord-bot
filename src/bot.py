@@ -76,6 +76,10 @@ def run_discord_bot():
         # calculate token cost
         new_cost = costs.calculate_token_cost(message)
 
+
+        # calculate token cost
+        new_cost = costs.calculate_token_cost(message)
+
         # limit check
         new_cost = 1  # todo calculate cost to be added here
         if limits.is_over_limit(new_cost, interaction.user.id):
