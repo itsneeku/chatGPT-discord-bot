@@ -139,6 +139,12 @@ class discordClient(discord.Client):
         self.conversation_history = []
         personas.current_persona = "standard"
 
+    def get_last_message(self):
+        for message in reversed(self.conversation_history):
+            if message["role"] == "user":
+                return message["content"]
+        return ""
+
     # prompt engineering
     async def switch_persona(self, persona) -> None:
         self.reset_conversation_history()
