@@ -34,13 +34,24 @@ def run_discord_bot():
         except Exception as e:
             logger.error(f"Error while displaying limits: {e}")
 
-    @discordClient.tree.command(name="setlimits", description="Set chatbot spending limits")
-    async def setlimits(interaction: discord.Interaction):
+
+    @discordClient.tree.command(name="setlimits", description="Set chatbot spending limits (-1 for unlimited)")
+    @app_commands.choices(limit_type = [
+        app_commands.Choice(name="per_day", value="per_day"),
+        app_commands.Choice(name="per_message", value="per_message"),
+    ])
+    async def setlimits(interaction: discord.Interaction, limit_type: app_commands.Choice[str], limit: int):
         try:
             await interaction.response.defer(ephemeral=True)
-            await interaction.followup.send("This feature is not available yet.")
+            success = limits.set_limit(limit_type.value, limit)
+            if success:
+                await interaction.followup.send(f"**INFO: Limit set successfully.**\n{limits.current_limit_message()}")
+                logger.info(f"Limit set successfully: {limit_type.value} = {limit}")
+            else:
+                await interaction.followup.send("Error setting limits.  Valid values are >= -1")
         except Exception as e:
-            logger.error(f"Error while displaying setlimits: {e}")
+            logger.error(f"Error while setting limits: {e}")
+
 
     @discordClient.tree.command(name="chat", description="Have a chat with ChatGPT")
     async def chat(interaction: discord.Interaction, *, message: str):

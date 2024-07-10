@@ -55,21 +55,17 @@ class discordClient(discord.Client):
 
     async def setup_hook(self):
         await self.tree.sync()
-        self.loop.create_task(self.reset_daily_total())  # register the daily limits reset task
+        self.loop.create_task(self.run_every_midnight())  # register the daily limits reset task
 
-    async def reset_daily_total(self):  # for chatbot limits
+    async def run_every_midnight(self):
         await self.wait_until_ready()
         while not self.is_closed():
             now = datetime.now()
             next_run = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
             sleep_time = (next_run - now).total_seconds()
             await asyncio.sleep(sleep_time)
-            # Your reset logic here
-            limits.daily_total = 0
-            logger.info("Daily total reset")
-            # Reset the conversation history or any other daily reset logic
-            self.reset_conversation_history()
-            logger.info("Daily total reset successfully.")
+            # The following will run every midnight
+            limits.reset_daily(self, logger)
 
     async def process_messages(self):
         while True:

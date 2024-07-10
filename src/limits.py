@@ -15,6 +15,29 @@ def is_over_limit(new_cost=1):
     return False
 
 
+def set_limit(limit_type, value) -> bool:
+    if value < -1:
+        return False
+    if limit_type == "per_day":
+        global limit_per_day
+        limit_per_day = value
+        return True
+    elif limit_type == "per_message":
+        global limit_per_message
+        limit_per_message = value
+        return True
+    return False
+
+
 def add_to_daily_total(new_cost=1):
     global daily_total
     daily_total += new_cost
+
+
+def reset_daily(discordClient, logger):
+    global daily_total
+    daily_total = 0
+    logger.info("Daily total reset to zero")
+    # Reset the conversation history or any other daily reset logic
+    discordClient.reset_conversation_history()
+    logger.info("Recent conversation cleared.")
