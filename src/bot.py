@@ -142,6 +142,51 @@ def run_discord_bot():
 #######################################################################################################
 
 
+#######################################################################################################
+    # toggle cost
+    @discordClient.tree.command(name="togglecost", description="Toggle cost calculation")
+    async def togglecost(interaction: discord.Interaction):
+        try:
+            await interaction.response.defer(ephemeral=True)
+            costs.toggle_cost()
+            await interaction.followup.send(
+                f"> **INFO: Cost calculation is now {'enabled' if costs.COST_ENABLED else 'disabled'}**")
+        except Exception as e:
+            logger.error(f"Error while toggling cost: {e}")
+
+
+    # calculate cost of message
+    @discordClient.tree.command(name="calculatecost", description="Calculate cost of the message")
+    async def calculatecost(interaction: discord.Interaction, message: str):
+        try:
+            await interaction.response.defer(ephemeral=True)
+            if costs.COST_ENABLED:
+                cost = costs.calculate_token_cost(message)  # You need to implement this function
+                await interaction.followup.send(f"> **Message:** \"{message}\"\n> **Cost:** {cost}")
+            else:
+                await interaction.followup.send("> **INFO: Cost calculation is currently disabled**")
+        except Exception as e:
+            logger.error(f"Error while calculating message cost: {e}")
+
+    # calculate cost of most recent message
+    @discordClient.tree.command(name="calculatecostrecent", description="Calculate cost of the most recent message")
+    async def calculatecostrecent(interaction: discord.Interaction):
+        most_recent_message = discordClient.get_last_message()
+        try:
+            await interaction.response.defer(ephemeral=True)
+            if costs.COST_ENABLED and most_recent_message is not None:
+                cost = costs.calculate_token_cost(most_recent_message)
+                await interaction.followup.send(f"> **Most Recent Message:** \"{most_recent_message}\"\n> **Cost:** {cost}")
+            elif most_recent_message is None:
+                await interaction.followup.send("> **INFO: No recent message to calculate cost for.**")
+            else:
+                await interaction.followup.send("> **INFO: Cost calculation is currently disabled**")
+        except Exception as e:
+            logger.error(f"Error while calculating cost for the most recent message: {e}")
+
+#######################################################################################################
+
+
     @discordClient.tree.command(name="private", description="Toggle private access")
     async def private(interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=False)
