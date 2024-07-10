@@ -28,24 +28,30 @@ def run_discord_bot():
     async def limit_command(interaction: discord.Interaction):
         try:
             await interaction.response.defer(ephemeral=True)
-            msg = limits.current_limit_message()
+            msg = limits.current_limit_message(interaction.user.id)
             await interaction.followup.send(msg)
             logger.info(msg)
         except Exception as e:
             logger.error(f"Error while displaying limits: {e}")
 
 
-    @discordClient.tree.command(name="setlimits", description="Set chatbot spending limits (-1 for unlimited)")
+    @discordClient.tree.command(name="setlimits", description="Set chatbot spending limits (Admins only)")
     @app_commands.choices(limit_type = [
-        app_commands.Choice(name="per_day", value="per_day"),
-        app_commands.Choice(name="per_message", value="per_message"),
+        app_commands.Choice(name="server_per_day", value="server_per_day"),
+        app_commands.Choice(name="server_per_message", value="server_per_message"),
+        app_commands.Choice(name="user_per_day", value="user_per_day"),
+        app_commands.Choice(name="user_per_message", value="user_per_message"),
     ])
     async def setlimits(interaction: discord.Interaction, limit_type: app_commands.Choice[str], limit: int):
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.response.defer(ephemeral=True)
+            await interaction.followup.send("You must be an admin to set limits.")
+            return
         try:
             await interaction.response.defer(ephemeral=True)
             success = limits.set_limit(limit_type.value, limit)
             if success:
-                await interaction.followup.send(f"**INFO: Limit set successfully.**\n{limits.current_limit_message()}")
+                await interaction.followup.send(f"**INFO: Limit set successfully.**\n{limits.current_limit_message(interaction.user.id)}")
                 logger.info(f"Limit set successfully: {limit_type.value} = {limit}")
             else:
                 await interaction.followup.send("Error setting limits.  Valid values are >= -1")
@@ -67,10 +73,10 @@ def run_discord_bot():
         discordClient.current_channel = interaction.channel
         # limit check
         new_cost = 1  # todo calculate cost to be added here
-        if limits.is_over_limit(new_cost):
+        if limits.is_over_limit(new_cost, interaction.user.id):
             await interaction.response.defer(ephemeral=True)
             await interaction.followup.send(
-                f"> **WARN: You have reached your limit.\n {limits.current_limit_message()}\n**")
+                f"> **WARN: You have reached your limit.\n {limits.current_limit_message(interaction.user.id)}\n**")
             logger.warning(
                 f"\x1b[31m{username}\x1b[0m : LIMIT EXCEEDED /chat [{message}] in ({discordClient.current_channel})")
             return
@@ -79,6 +85,7 @@ def run_discord_bot():
 
         await discordClient.enqueue_message(interaction, message)
         limits.add_to_daily_total(new_cost)
+        limits.add_to_user_daily_total(interaction.user.id, new_cost)
 
 
     @discordClient.tree.command(name="private", description="Toggle private access")
