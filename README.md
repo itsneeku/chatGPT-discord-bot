@@ -17,8 +17,8 @@
 # Setup
 ## Prerequisites (Nix users)
 * Run `nix develop`
-* Open your IDE from the newly initialized nix shell
-## Prerequisites
+* Open your IDE from the newly initialized nix shell (ex: `code .`)
+## Prerequisites (Others)
 * **Python 3.9 or later**
 * **Rename the file `.env.example` to `.env`**
 * Running `pip3 install -r requirements.txt` to install the required dependencies
