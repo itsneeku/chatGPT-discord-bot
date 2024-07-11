@@ -5,3 +5,4 @@ openai==1.30.3
 selenium==4.9.1
 g4f==0.3.1.9
 g4f[all]
+tiktoken==0.7.0
