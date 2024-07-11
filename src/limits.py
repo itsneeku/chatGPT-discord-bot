@@ -1,16 +1,18 @@
-server_limit_per_day = -1  # -1 means no limit
-server_limit_per_message = -1  # -1 means no limit
+import os
+
+server_limit_per_day = os.getenv("SERVER_DAY", -1) 
+server_limit_per_message = os.getenv("SERVER_MESSAGE", -1)
 server_daily_total = 0
-user_limit_per_day = 10
-user_limit_per_message = 10
+user_limit_per_day = os.getenv("USER_DAY", -1)
+user_limit_per_message = os.getenv("USER_MESSAGE", -1)
 user_daily_total = {}  # dict to store daily total for each user
 
 
 def current_limit_message(user_id):
-    return (f"**Spending limits**\n```"
-            f"{'Server per Day':<20}{'no limit' if server_limit_per_day < 0 else server_limit_per_day : <8} ({server_daily_total} today)\n"
+    return (f"**Tokens Spending Limits**\n```"
+            f"{'Server per Day':<20}{'no limit' if server_limit_per_day < 0 else server_limit_per_day : <8} ({server_daily_total:.5f}USD today)\n"
             f"{'Server per Message':<20}{'no limit' if server_limit_per_message < 0 else server_limit_per_message: <8}\n"
-            f"{'User per Day':<20}{'no limit' if user_limit_per_day < 0 else user_limit_per_day:<8} ({get_user_daily_total(user_id)} by you today)\n"
+            f"{'User per Day':<20}{'no limit' if user_limit_per_day < 0 else user_limit_per_day:<8} ({get_user_daily_total(user_id):.5f}USD by you today)\n"
             f"{'User per Message':<20}{'no limit' if user_limit_per_message < 0 else user_limit_per_message:<8}"
             f"```")
 
