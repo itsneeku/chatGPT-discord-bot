@@ -40,18 +40,6 @@ def add_to_user_daily_total(user_id, new_cost=1):
     user_daily_total[user_id] = user_daily_total.get(user_id, 0) + new_cost
 
 
-def format_limits_table(user_id):
-    limits = get_user_daily_total(user_id)
-
-    table = "```\n"
-    table += f"{'Limit Type':<20} {'Value':<10}\n"
-    table += "-" * 30 + "\n"
-    for limit_type, limit_value in limits.items():
-        table += f"{limit_type:<20} {limit_value:<10}\n"
-    table += "```"
-    return table
-
-
 def set_limit(limit_type, value) -> bool:
     if value < -1:
         return False
