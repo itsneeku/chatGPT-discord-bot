@@ -20,7 +20,7 @@ from g4f.Provider import  FreeGpt, ChatgptNext, AItianhuSpace
 
 from openai import AsyncOpenAI
 
-from src import limits
+from src import limits, costs
 
 g4f.debug.logging = True
 
@@ -93,6 +93,9 @@ class discordClient(discord.Client):
             author = message.author.id
         try:
             response = await self.handle_response(user_message)
+            cost = costs.calculate_token_cost_output(user_message)
+            limits.add_to_daily_total(cost)
+            limits.add_to_user_daily_total(message.user.id, cost)
             response_content = f'> **{user_message}** - <@{str(author)}> \n\n{response}'
             await send_split_message(self, response_content, message)
         except Exception as e:

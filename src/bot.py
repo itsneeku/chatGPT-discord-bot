@@ -74,10 +74,8 @@ def run_discord_bot():
         discordClient.current_channel = interaction.channel
 
         # calculate token cost
-        new_cost = costs.calculate_token_cost(message)
+        new_cost = costs.calculate_token_cost_input(message)
 
-        # limit check
-        new_cost = 1  # todo calculate cost to be added here
         if limits.is_over_limit(new_cost, interaction.user.id):
             await interaction.response.defer(ephemeral=True)
             await interaction.followup.send(
@@ -112,7 +110,7 @@ def run_discord_bot():
         try:
             await interaction.response.defer(ephemeral=True)
             if costs.COST_ENABLED:
-                cost = costs.calculate_token_cost(message)  # You need to implement this function
+                cost = costs.calculate_token_cost_input(message)  # You need to implement this function
                 await interaction.followup.send(f"> **Message:** \"{message}\"\n> **Cost:** {cost}")
             else:
                 await interaction.followup.send("> **INFO: Cost calculation is currently disabled**")
@@ -126,7 +124,7 @@ def run_discord_bot():
         try:
             await interaction.response.defer(ephemeral=True)
             if costs.COST_ENABLED and most_recent_message is not None:
-                cost = costs.calculate_token_cost(most_recent_message)
+                cost = costs.calculate_token_cost_input(most_recent_message)
                 await interaction.followup.send(f"> **Most Recent Message:** \"{most_recent_message}\"\n> **Cost:** {cost}")
             elif most_recent_message is None:
                 await interaction.followup.send("> **INFO: No recent message to calculate cost for.**")
