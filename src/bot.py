@@ -43,7 +43,7 @@ def run_discord_bot():
         app_commands.Choice(name="user_per_day", value="user_per_day"),
         app_commands.Choice(name="user_per_message", value="user_per_message"),
     ])
-    async def setlimits(interaction: discord.Interaction, limit_type: app_commands.Choice[str], limit: int):
+    async def setlimits(interaction: discord.Interaction, limit_type: app_commands.Choice[str], limit: float):
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.defer(ephemeral=True)
             await interaction.followup.send("You must be an admin to set limits.")
