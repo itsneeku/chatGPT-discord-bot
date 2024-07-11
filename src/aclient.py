@@ -93,7 +93,7 @@ class discordClient(discord.Client):
             author = message.author.id
         try:
             response = await self.handle_response(user_message)
-            cost = costs.calculate_token_cost_output(user_message)
+            cost = costs.calculate_token_cost_output(response)
             limits.add_to_daily_total(cost)
             limits.add_to_user_daily_total(message.user.id, cost)
             response_content = f'> **{user_message}** - <@{str(author)}> \n\n{response}'
