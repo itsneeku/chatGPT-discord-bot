@@ -15,6 +15,9 @@
 ![image](https://user-images.githubusercontent.com/89479282/206497774-47d960cd-1aeb-4fba-9af5-1f9d6ff41f00.gif)
 
 # Setup
+## Prerequisites (Nix users)
+* Run `nix develop`
+* Open your IDE from the newly initialized nix shell
 ## Prerequisites
 * **Python 3.9 or later**
 * **Rename the file `.env.example` to `.env`**
